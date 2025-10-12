@@ -1,65 +1,121 @@
 #!/bin/bash
+# ────────────────────────────────────────────────
+#  ADVANCED VPS SYSTEM INFORMATION DASHBOARD
+#  Author: ChatGPT (GPT-5)
+# ────────────────────────────────────────────────
 
-# Script: system_info.sh
-# Purpose: Display VPS system information (Disk, RAM, CPU, Uptime)
-
-# Colors for better UI
+# Color palette
+RED="\e[31m"
 GREEN="\e[32m"
-CYAN="\e[36m"
 YELLOW="\e[33m"
+CYAN="\e[36m"
+MAGENTA="\e[35m"
+BOLD="\e[1m"
 RESET="\e[0m"
 
-echo -e "${CYAN}==============================================="
-echo -e "         VPS SYSTEM INFORMATION REPORT"
-echo -e "===============================================${RESET}"
+clear
 
-# 🧮 Disk Information
-total_disk=$(df -h / | awk 'NR==2 {print $2}')
-used_disk=$(df -h / | awk 'NR==2 {print $3}')
-free_disk=$(df -h / | awk 'NR==2 {print $4}')
-used_percent=$(df -h / | awk 'NR==2 {print $5}')
+# Animated divider
+divider() {
+  echo -ne "${MAGENTA}"
+  for i in {1..50}; do echo -n "─"; sleep 0.002; done
+  echo -e "${RESET}"
+}
 
-echo -e "${YELLOW}📦 DISK USAGE:${RESET}"
-echo -e "Total Disk Space : ${GREEN}$total_disk${RESET}"
-echo -e "Used Disk Space  : ${GREEN}$used_disk${RESET}"
-echo -e "Free Disk Space  : ${GREEN}$free_disk${RESET}"
-echo -e "Usage Percentage : ${GREEN}$used_percent${RESET}"
-echo
+# Detect OS info
+os_name=$(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
+kernel_version=$(uname -r)
+architecture=$(uname -m)
+hostname=$(hostname)
+uptime_formatted=$(uptime -p)
+load_avg=$(uptime | awk -F'load average:' '{print $2}' | xargs)
+current_time=$(date +"%Y-%m-%d %H:%M:%S")
+logged_users=$(who | wc -l)
+main_iface=$(ip route | grep default | awk '{print $5}')
+public_ip=$(curl -s ifconfig.me || echo "Unavailable")
 
-# 🧠 RAM Information
-total_ram=$(free -h | awk '/Mem:/ {print $2}')
-used_ram=$(free -h | awk '/Mem:/ {print $3}')
-free_ram=$(free -h | awk '/Mem:/ {print $4}')
-swap_total=$(free -h | awk '/Swap:/ {print $2}')
-swap_used=$(free -h | awk '/Swap:/ {print $3}')
+# Disk Info
+disk_total=$(df -h / | awk 'NR==2 {print $2}')
+disk_used=$(df -h / | awk 'NR==2 {print $3}')
+disk_free=$(df -h / | awk 'NR==2 {print $4}')
+disk_usep=$(df -h / | awk 'NR==2 {print $5}')
 
-echo -e "${YELLOW}💾 MEMORY (RAM) USAGE:${RESET}"
-echo -e "Total RAM  : ${GREEN}$total_ram${RESET}"
-echo -e "Used RAM   : ${GREEN}$used_ram${RESET}"
-echo -e "Free RAM   : ${GREEN}$free_ram${RESET}"
-echo -e "Swap Used  : ${GREEN}$swap_used / $swap_total${RESET}"
-echo
+# RAM Info
+ram_total=$(free -h | awk '/Mem:/ {print $2}')
+ram_used=$(free -h | awk '/Mem:/ {print $3}')
+ram_free=$(free -h | awk '/Mem:/ {print $4}')
 
-# ⚙️ CPU Information
+# CPU Info
 cpu_model=$(awk -F: '/model name/ {print $2; exit}' /proc/cpuinfo | sed 's/^ //')
 cpu_cores=$(nproc)
 cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8"%"}')
 
-echo -e "${YELLOW}🧩 CPU INFORMATION:${RESET}"
-echo -e "CPU Model   : ${GREEN}$cpu_model${RESET}"
-echo -e "CPU Cores   : ${GREEN}$cpu_cores${RESET}"
-echo -e "CPU Usage   : ${GREEN}$cpu_usage${RESET}"
+# Network Speed (brief test using /proc/net/dev)
+iface_data_before=$(cat /proc/net/dev | grep "$main_iface")
+sleep 1
+iface_data_after=$(cat /proc/net/dev | grep "$main_iface")
+rx_before=$(echo $iface_data_before | awk '{print $2}')
+tx_before=$(echo $iface_data_before | awk '{print $10}')
+rx_after=$(echo $iface_data_after | awk '{print $2}')
+tx_after=$(echo $iface_data_after | awk '{print $10}')
+rx_speed=$(echo "scale=2; ($rx_after - $rx_before) / 1024" | bc)
+tx_speed=$(echo "scale=2; ($tx_after - $tx_before) / 1024" | bc)
+
+# ────────────────────────────────────────────────
+# OS LOGO (auto style)
+# ────────────────────────────────────────────────
+if [[ "$os_name" == *"Ubuntu"* ]]; then
+  logo="${YELLOW}
+  ██╗   ██╗██████╗ ██╗   ██╗████████╗██╗   ██╗
+  ██║   ██║██╔══██╗██║   ██║╚══██╔══╝██║   ██║
+  ██║   ██║██████╔╝██║   ██║   ██║   ██║   ██║
+  ██║   ██║██╔══██╗██║   ██║   ██║   ██║   ██║
+  ╚██████╔╝██████╔╝╚██████╔╝   ██║   ╚██████╔╝
+   ╚═════╝ ╚═════╝  ╚═════╝    ╚═╝    ╚═════╝ 
+  ${RESET}"
+elif [[ "$os_name" == *"Debian"* ]]; then
+  logo="${RED}
+     _____      _      _             
+    |  __ \    (_)    | |            
+    | |  | | __ _  ___| | ___  _ __  
+    | |  | |/ _\` |/ __| |/ _ \| '_ \ 
+    | |__| | (_| | (__| | (_) | | | |
+    |_____/ \__,_|\___|_|\___/|_| |_|
+  ${RESET}"
+else
+  logo="${CYAN}
+   ____  ____   _____ 
+  |  _ \|  _ \ / ____|
+  | |_) | |_) | (___  
+  |  __/|  _ < \___ \ 
+  | |   | |_) |____) |
+  |_|   |____/|_____/ 
+  ${RESET}"
+fi
+
+# ────────────────────────────────────────────────
+# DISPLAY SECTION
+# ────────────────────────────────────────────────
+echo -e "$logo"
+divider
+echo -e "${BOLD}${CYAN}Hostname:      ${RESET}$hostname"
+echo -e "${BOLD}${CYAN}OS:            ${RESET}$os_name"
+echo -e "${BOLD}${CYAN}Kernel:        ${RESET}$kernel_version"
+echo -e "${BOLD}${CYAN}Architecture:  ${RESET}$architecture"
+echo -e "${BOLD}${CYAN}Time:          ${RESET}$current_time"
+echo -e "${BOLD}${CYAN}Uptime:        ${RESET}$uptime_formatted"
+echo -e "${BOLD}${CYAN}Users Online:  ${RESET}$logged_users"
+divider
+
+echo -e "${YELLOW}📦 DISK:${RESET}   Total: ${GREEN}$disk_total${RESET} | Used: ${RED}$disk_used${RESET} | Free: ${GREEN}$disk_free${RESET} | Usage: ${MAGENTA}$disk_usep${RESET}"
+echo -e "${YELLOW}💾 RAM:${RESET}    Total: ${GREEN}$ram_total${RESET} | Used: ${RED}$ram_used${RESET} | Free: ${GREEN}$ram_free${RESET}"
+echo -e "${YELLOW}🧩 CPU:${RESET}    ${cpu_model} (${cpu_cores} cores) | Usage: ${CYAN}$cpu_usage${RESET}"
+divider
+
+echo -e "${MAGENTA}🌐 NETWORK:${RESET}"
+echo -e "Interface: ${GREEN}$main_iface${RESET} | IP: ${GREEN}$public_ip${RESET}"
+echo -e "Speed: ↓ ${GREEN}${rx_speed} KB/s${RESET} ↑ ${YELLOW}${tx_speed} KB/s${RESET}"
+divider
+
+echo -e "${BOLD}${CYAN}Load Average:${RESET} $load_avg"
 echo
-
-# ⏱️ Uptime Information
-uptime_formatted=$(uptime -p)
-load_avg=$(uptime | awk -F'load average:' '{print $2}' | xargs)
-
-echo -e "${YELLOW}⏰ SYSTEM UPTIME & LOAD:${RESET}"
-echo -e "Uptime       : ${GREEN}$uptime_formatted${RESET}"
-echo -e "Load Average : ${GREEN}$load_avg${RESET}"
-echo
-
-echo -e "${CYAN}==============================================="
-echo -e "         END OF SYSTEM REPORT"
-echo -e "===============================================${RESET}"
