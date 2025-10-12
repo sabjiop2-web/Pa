@@ -23,43 +23,54 @@ divider() {
 }
 
 # Detect OS info
-os_name=$(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"')
+os_name=$(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"' 2>/dev/null || echo "Unknown OS")
 kernel_version=$(uname -r)
 architecture=$(uname -m)
-hostname=$(hostname)
-uptime_formatted=$(uptime -p)
-load_avg=$(uptime | awk -F'load average:' '{print $2}' | xargs)
+hostname=$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo "unknown")
+uptime_formatted=$(uptime -p 2>/dev/null || echo "uptime command not supported")
+load_avg=$(uptime 2>/dev/null | awk -F'load average:' '{print $2}' | xargs 2>/dev/null || echo "N/A")
 current_time=$(date +"%Y-%m-%d %H:%M:%S")
-logged_users=$(who | wc -l)
-main_iface=$(ip route | grep default | awk '{print $5}')
-public_ip=$(curl -s ifconfig.me || echo "Unavailable")
+logged_users=$(who 2>/dev/null | wc -l || echo "0")
+main_iface=$(ip route 2>/dev/null | grep default | awk '{print $5}' | head -1 || echo "unknown")
+public_ip=$(curl -s -4 ifconfig.me 2>/dev/null || curl -s -6 ifconfig.me 2>/dev/null || echo "Unavailable")
 
 # Disk Info
-disk_total=$(df -h / | awk 'NR==2 {print $2}')
-disk_used=$(df -h / | awk 'NR==2 {print $3}')
-disk_free=$(df -h / | awk 'NR==2 {print $4}')
-disk_usep=$(df -h / | awk 'NR==2 {print $5}')
+disk_total=$(df -h / 2>/dev/null | awk 'NR==2 {print $2}' || echo "N/A")
+disk_used=$(df -h / 2>/dev/null | awk 'NR==2 {print $3}' || echo "N/A")
+disk_free=$(df -h / 2>/dev/null | awk 'NR==2 {print $4}' || echo "N/A")
+disk_usep=$(df -h / 2>/dev/null | awk 'NR==2 {print $5}' || echo "N/A")
 
 # RAM Info
-ram_total=$(free -h | awk '/Mem:/ {print $2}')
-ram_used=$(free -h | awk '/Mem:/ {print $3}')
-ram_free=$(free -h | awk '/Mem:/ {print $4}')
+ram_total=$(free -h 2>/dev/null | awk '/Mem:/ {print $2}' || echo "N/A")
+ram_used=$(free -h 2>/dev/null | awk '/Mem:/ {print $3}' || echo "N/A")
+ram_free=$(free -h 2>/dev/null | awk '/Mem:/ {print $4}' || echo "N/A")
 
 # CPU Info
-cpu_model=$(awk -F: '/model name/ {print $2; exit}' /proc/cpuinfo | sed 's/^ //')
-cpu_cores=$(nproc)
-cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8"%"}')
+cpu_model=$(awk -F: '/model name/ {print $2; exit}' /proc/cpuinfo 2>/dev/null | sed 's/^ //' || echo "Unknown CPU")
+cpu_cores=$(nproc 2>/dev/null || grep -c ^processor /proc/cpuinfo 2>/dev/null || echo "1")
+cpu_usage=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk '{print 100 - $8"%"}' || echo "N/A")
 
 # Network Speed (brief test using /proc/net/dev)
-iface_data_before=$(cat /proc/net/dev | grep "$main_iface")
-sleep 1
-iface_data_after=$(cat /proc/net/dev | grep "$main_iface")
-rx_before=$(echo $iface_data_before | awk '{print $2}')
-tx_before=$(echo $iface_data_before | awk '{print $10}')
-rx_after=$(echo $iface_data_after | awk '{print $2}')
-tx_after=$(echo $iface_data_after | awk '{print $10}')
-rx_speed=$(echo "scale=2; ($rx_after - $rx_before) / 1024" | bc)
-tx_speed=$(echo "scale=2; ($tx_after - $tx_before) / 1024" | bc)
+if command -v bc >/dev/null 2>&1; then
+  iface_data_before=$(cat /proc/net/dev 2>/dev/null | grep "$main_iface" || echo "")
+  sleep 1
+  iface_data_after=$(cat /proc/net/dev 2>/dev/null | grep "$main_iface" || echo "")
+  
+  if [[ -n "$iface_data_before" && -n "$iface_data_after" ]]; then
+    rx_before=$(echo $iface_data_before | awk '{print $2}')
+    tx_before=$(echo $iface_data_before | awk '{print $10}')
+    rx_after=$(echo $iface_data_after | awk '{print $2}')
+    tx_after=$(echo $iface_data_after | awk '{print $10}')
+    rx_speed=$(echo "scale=2; ($rx_after - $rx_before) / 1024" | bc 2>/dev/null || echo "0")
+    tx_speed=$(echo "scale=2; ($tx_after - $tx_before) / 1024" | bc 2>/dev/null || echo "0")
+  else
+    rx_speed="N/A"
+    tx_speed="N/A"
+  fi
+else
+  rx_speed="bc not installed"
+  tx_speed="bc not installed"
+fi
 
 # ────────────────────────────────────────────────
 # OS LOGO (auto style)
