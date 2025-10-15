@@ -1,49 +1,37 @@
-#!/bin/bash
-# ───────────────────────────────────────────────────────────────────────────────────────
+⁴#!/bin/bash
+# ────────────────────────────────────────────────
 #  NEXUS VPS DASHBOARD
-#  Advanced System Intelligence & Performance Monitoring
-# ───────────────────────────────────────────────────────────────────────────────────────
+#  Advanced System Monitoring Interface
+# ────────────────────────────────────────────────
 
-# Color palette - Cyberpunk gradient scheme
-CYBER_BLACK="\e[38;5;232m"
-DEEP_BLUE="\e[38;5;20m"
-NEON_BLUE="\e[38;5;27m"
-ELECTRIC_BLUE="\e[38;5;81m"
-CYAN="\e[38;5;51m"
-NEON_GREEN="\e[38;5;46m"
-MATRIX_GREEN="\e[38;5;82m"
-NEON_YELLOW="\e[38;5;226m"
-NEON_ORANGE="\e[38;5;208m"
-NEON_RED="\e[38;5;196m"
-NEON_PURPLE="\e[38;5;93m"
-NEON_MAGENTA="\e[38;5;201m"
-NEON_PINK="\e[38;5;199m"
-HACKER_GRAY="\e[38;5;240m"
-TERMINAL_WHITE="\e[38;5;255m"
+# Color palette - Professional gradient scheme
+DARK_BLUE="\e[38;5;24m"
+BLUE="\e[38;5;39m"
+LIGHT_BLUE="\e[38;5;51m"
+TEAL="\e[38;5;43m"
+GREEN="\e[38;5;48m"
+YELLOW="\e[38;5;227m"
+ORANGE="\e[38;5;215m"
+RED="\e[38;5;203m"
+PURPLE="\e[38;5;129m"
+MAGENTA="\e[38;5;207m"
+GRAY="\e[38;5;245m"
+LIGHT_GRAY="\e[38;5;252m"
+WHITE="\e[38;5;255m"
 BOLD="\e[1m"
 RESET="\e[0m"
 
 clear
 
-# Cyberpunk ASCII Art Header with unique design
+# Professional ASCII Art Header
 print_header() {
-  echo -e "${DEEP_BLUE}"
-  echo -e "╔═══════════════════════════════════════════════════════════════════════════════════╗"
-  echo -e "║  ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓${DEEP_BLUE}  ║"
-  echo -e "║  ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓${DEEP_BLUE}  ║"
-  echo -e "║  ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${NEON_BLUE} ▄▄▄▄▄ ▄▄▄▄▄ ▄▄▄▄▄ ▄▄▄ ▄▄▄▄▄ ${NEON_PURPLE} ▄▄▄▄▄ ▄   ▄ ▄▄▄▄▄ ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${DEEP_BLUE}  ║"
-  echo -e "║  ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${NEON_BLUE} █   █ █   █ █     █   █   █ ${NEON_PURPLE}   █   ██  █ █     ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${DEEP_BLUE}  ║"
-  echo -e "║  ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${NEON_BLUE} █▀▀▀▀ █▀▀▀█ █▀▀▀▀ █   █   █ ${NEON_PURPLE}   █   █ █ █ █▀▀▀▀ ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${DEEP_BLUE}  ║"
-  echo -e "║  ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${NEON_BLUE} █     █   █ █     █   █   █ ${NEON_PURPLE}   █   █  ██ █     ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${DEEP_BLUE}  ║"
-  echo -e "║  ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${NEON_BLUE} █     █   █ █▄▄▄▄ █▄▄ █▄▄▄█ ${NEON_PURPLE}   █   █   █ █▄▄▄▄ ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓${DEEP_BLUE}  ║"
-  echo -e "║  ${CYBER_BLACK}▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓${DEEP_BLUE}  ║"
-  echo -e "║                                                                               ║"
-  echo -e "║         ${BOLD}${ELECTRIC_BLUE}⟠ QUANTUM SYSTEM INTELLIGENCE • REAL-TIME TELEMETRY PLATFORM ⟠${DEEP_BLUE}            ║"
-  echo -e "║                                                                               ║"
-  echo -e "║${NEON_GREEN}    ███████████████████████████████████████████████████████████████████████${DEEP_BLUE}    ║"
-  echo -e "╚═══════════════════════════════════════════════════════════════════════════════════╝"
-  echo -e "${RESET}"
-}
+  echo -e "${DARK_BLUE}"
+  echo -e "╔══════════════════════════════════════════════════════════════════════════════╗"
+  echo -e "║                                                                              ║"
+  echo -e "║  ${BOLD}${WHITE}╦╔═╔═╗╦╔═╦ ╦╔═╗╦  ╔═╗  ╦╔═╔═╗╦═╗╔═╗╔═╗╔═╗╦╔═╔═╗╦═╗${DARK_BLUE}                   ║"
+  echo -e "║  ${BOLD}${WHITE}╠╩╗║╣ ╠╩╗║ ║╠═╝║  ║ ║  ╠╩╗║ ║╠╦╝╚═╗║ ║║ ║╠╩╗║╣ ╠╦╝${DARK_BLUE}                   ║"
+  echo -e "║  ${BOLD}${WHITE}╩ ╩╚═╝╩ ╩╚═╝╩  ╩═╝╚═╝  ╩ ╩╚═╝╩╚═╚═╝╚═╝╚═╝╩ ╩╚═╝╩╚═${DARK_BLUE}                   ║"
+  echo -e "║                                                                              ║"
+  echo -e "║            ${BOLD}${LIGHT_BLUE}SYSTEM INTELLIGENCE PLATFORM • REAL-TIME ANALYTICS${DARK_BLUE}                 ║"
+  echo -e "║                                                                              ║"
 
-# Call the function
-print_header
