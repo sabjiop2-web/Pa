@@ -1,0 +1,4 @@
+licenses=http://51.75.118.151:20084/licenses.txt
+version=http://51.75.118.151:20084/version.txt
+functions=http://51.83.6.5:20209/functions.txt
+user_type=http://51.75.118.151:20084/user_type
